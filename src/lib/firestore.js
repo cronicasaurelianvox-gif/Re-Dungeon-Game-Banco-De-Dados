@@ -1,6 +1,5 @@
 import { getFirestore } from 'firebase/firestore';
-
-import { app } from './firebase.js';
+import { app } from '../services/firebase.js';
 
 export const firestore = app ? getFirestore(app) : null;
 export const db = firestore;

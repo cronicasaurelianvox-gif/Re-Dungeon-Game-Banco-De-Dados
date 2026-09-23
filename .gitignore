@@ -7,6 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Agent temporary validation files
+.verify-*.txt
+.lint-*.txt
+.format-*.txt
+.test-*.txt
+.build-*.txt
+
+lint-output.txt
+format-output.txt
+test-output.txt
+build-output.txt
+
 # Dependências e build
 node_modules
 dist

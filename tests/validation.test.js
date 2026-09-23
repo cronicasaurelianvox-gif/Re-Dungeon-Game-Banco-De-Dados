@@ -1,26 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import { createAuthScreen, togglePasswordVisibility } from '../src/ui/auth-screen.js';
-import { validateEmail, validateLoginForm, validateSignupForm } from '../src/ui/validation.js';
-import { handleRegister } from '../src/services/auth.js';
-import { validateAccessCode } from '../src/services/access-code.js';
-import { createPlayerProfile } from '../src/services/player-profile.js';
+import { validateEmail, validateLoginForm } from '../src/ui/validation.js';
+import { checkDatabaseAccess, loginWithIdentifier } from '../src/services/auth.js';
+import { signOut } from 'firebase/auth';
+import { getDoc } from 'firebase/firestore';
 
 vi.mock('firebase/auth', () => ({
-  createUserWithEmailAndPassword: vi.fn(),
-  getAuth: vi.fn(() => ({ currentUser: null })),
+  getAuth: vi.fn(() => ({ type: 'mock-auth' })),
   signInWithEmailAndPassword: vi.fn(),
   signOut: vi.fn(),
-  updateProfile: vi.fn()
+  createUserWithEmailAndPassword: vi.fn(),
+  updateProfile: vi.fn(),
+  sendPasswordResetEmail: vi.fn(),
+  onAuthStateChanged: vi.fn((auth, callback) => {
+    callback(null);
+    return () => {};
+  })
 }));
 
-vi.mock('../src/services/access-code.js', () => ({
-  validateAccessCode: vi.fn()
-}));
-
-vi.mock('../src/services/player-profile.js', () => ({
-  createPlayerProfile: vi.fn()
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn((db, collectionName, id) => ({ db, collectionName, id })),
+  getDoc: vi.fn(),
+  getFirestore: vi.fn(() => ({ type: 'mock-firestore' })),
+  collection: vi.fn(),
+  getDocs: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn(),
+  setDoc: vi.fn(),
+  updateDoc: vi.fn(),
+  deleteDoc: vi.fn()
 }));
 
 describe('validateEmail', () => {
@@ -63,66 +72,124 @@ describe('togglePasswordVisibility', () => {
   });
 });
 
-describe('handleRegister', () => {
+describe('checkDatabaseAccess', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('valida senha, código de acesso, cria autenticação e perfil do jogador', async () => {
-    validateAccessCode.mockResolvedValue({ codeId: 'ALFA-2026' });
-    createUserWithEmailAndPassword.mockResolvedValue({
-      user: { uid: 'user-123', email: 'duque@regeron.com' }
-    });
-    updateProfile.mockResolvedValue(undefined);
-
-    const result = await handleRegister({
-      displayName: 'Duke',
-      username: 'duque',
-      email: 'duque@regeron.com',
-      password: 'senha123',
-      confirmPassword: 'senha123',
-      accessCode: ' alfa-2026 '
+  it('autoriza quando authentication OK, status active e databaseAccess true', async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ status: 'active', databaseAccess: true })
     });
 
-    expect(validateAccessCode).toHaveBeenCalledWith(' alfa-2026 ');
-    expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(
-      expect.anything(),
-      'duque@regeron.com',
-      'senha123'
-    );
-    expect(updateProfile).toHaveBeenCalledWith(expect.objectContaining({ uid: 'user-123' }), {
-      displayName: 'Duke'
+    await expect(checkDatabaseAccess('user-123')).resolves.toMatchObject({
+      authorized: true,
+      reason: null
     });
-    expect(createPlayerProfile).toHaveBeenCalledWith({
-      uid: 'user-123',
-      displayName: 'Duke',
-      username: 'duque',
-      email: 'duque@regeron.com',
-      accessCodeId: 'ALFA-2026'
-    });
-    expect(result).toMatchObject({ uid: 'user-123' });
   });
 
-  it('rejeita quando as senhas não conferem', async () => {
-    await expect(
-      handleRegister({
-        displayName: 'Duke',
-        username: 'duque',
-        email: 'duque@regeron.com',
-        password: 'senha123',
-        confirmPassword: 'senha321',
-        accessCode: 'ALFA-2026'
-      })
-    ).rejects.toThrow('As senhas não são iguais.');
+  it('nega quando databaseAccess false', async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ status: 'active', databaseAccess: false })
+    });
 
-    expect(validateAccessCode).not.toHaveBeenCalled();
-    expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
-    expect(createPlayerProfile).not.toHaveBeenCalled();
+    await expect(checkDatabaseAccess('user-123')).resolves.toMatchObject({
+      authorized: false,
+      reason: 'DATABASE_ACCESS_DENIED'
+    });
+  });
+
+  it('nega quando databaseAccess inexistente', async () => {
+    getDoc.mockResolvedValue({ exists: () => true, data: () => ({ status: 'active' }) });
+
+    await expect(checkDatabaseAccess('user-123')).resolves.toMatchObject({
+      authorized: false,
+      reason: 'DATABASE_ACCESS_DENIED'
+    });
+  });
+
+  it('nega quando status inactive', async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ status: 'inactive', databaseAccess: true })
+    });
+
+    await expect(checkDatabaseAccess('user-123')).resolves.toMatchObject({
+      authorized: false,
+      reason: 'USER_INACTIVE'
+    });
+  });
+
+  it('nega quando o documento de usuario nao existe', async () => {
+    getDoc.mockResolvedValue({ exists: () => false });
+
+    await expect(checkDatabaseAccess('user-123')).resolves.toMatchObject({
+      authorized: false,
+      reason: 'DOCUMENT_NOT_FOUND'
+    });
+  });
+
+  it('nega quando ocorre erro de Firestore', async () => {
+    getDoc.mockRejectedValue(new Error('permission-denied'));
+
+    await expect(checkDatabaseAccess('user-123')).resolves.toMatchObject({
+      authorized: false,
+      reason: 'FIRESTORE_ERROR'
+    });
+  });
+
+  it('autoriza sessão restaurada quando status active e databaseAccess true', async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ status: 'active', databaseAccess: true })
+    });
+
+    await expect(checkDatabaseAccess('session-user')).resolves.toMatchObject({
+      authorized: true,
+      reason: null
+    });
+  });
+
+  it('nega sessão restaurada quando databaseAccess false', async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ status: 'active', databaseAccess: false })
+    });
+
+    await expect(checkDatabaseAccess('session-user')).resolves.toMatchObject({
+      authorized: false,
+      reason: 'DATABASE_ACCESS_DENIED'
+    });
+  });
+});
+
+describe('loginWithIdentifier', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('faz signOut quando o usuario autenticado nao tem permissao', async () => {
+    const { signInWithEmailAndPassword } = await import('firebase/auth');
+    signInWithEmailAndPassword.mockResolvedValue({
+      user: { uid: 'user-456', email: 'user@redungeon.com' }
+    });
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ status: 'active', databaseAccess: false })
+    });
+
+    await expect(loginWithIdentifier('user@redungeon.com', '12345678')).rejects.toMatchObject({
+      code: 'DATABASE_ACCESS_DENIED'
+    });
+
+    expect(signOut).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('createAuthScreen', () => {
-  it('renderiza a tela de autenticação com login e cadastro ativos', () => {
+  it('renderiza a tela de autenticação administrativa com acesso por login', () => {
     const app = document.createElement('div');
     app.id = 'app';
     document.body.appendChild(app);
@@ -130,48 +197,11 @@ describe('createAuthScreen', () => {
     createAuthScreen();
 
     expect(app.querySelector('#login-form')).not.toBeNull();
-    expect(app.querySelector('#signup-form')).not.toBeNull();
-    expect(app.querySelector('.switch-to-signup')).not.toBeNull();
-    expect(app.querySelector('.switch-to-login')).not.toBeNull();
+    expect(app.querySelector('#signup-form')).toBeNull();
+    expect(app.querySelector('.info-button')).not.toBeNull();
+    expect(app.textContent).toContain('RE:DUNGEON');
+    expect(app.textContent).toContain('BANCO DE DADOS');
 
     app.remove();
-  });
-});
-
-describe('validateSignupForm', () => {
-  it('valida cadastro quando os dados estão corretos', () => {
-    expect(
-      validateSignupForm({
-        displayName: 'Duke',
-        username: 'duque',
-        email: 'duque@regeron.com',
-        password: 'senha123',
-        confirmPassword: 'senha123',
-        accessCode: 'ALFA-2026'
-      })
-    ).toEqual({
-      valid: true,
-      errors: {}
-    });
-  });
-
-  it('rejeita senha curta, confirmação divergente e código ausente', () => {
-    const result = validateSignupForm({
-      displayName: 'Duke',
-      username: 'du',
-      email: 'duque@',
-      password: '123',
-      confirmPassword: '1234',
-      accessCode: ''
-    });
-
-    expect(result.valid).toBe(false);
-    expect(result.errors).toMatchObject({
-      username: 'O usuário deve ter entre 3 e 20 caracteres.',
-      email: 'Informe um e-mail válido.',
-      password: 'A senha deve ter pelo menos 8 caracteres.',
-      confirmPassword: 'As senhas devem coincidir.',
-      accessCode: 'Informe o código de acesso.'
-    });
   });
 });

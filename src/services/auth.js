@@ -1,12 +1,13 @@
 import {
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile,
-  sendPasswordResetEmail
+  updateProfile
 } from 'firebase/auth';
 
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 import { auth } from '../lib/auth.js';
 import { db } from '../lib/firestore.js';
@@ -77,11 +78,124 @@ export async function handleRegister(form) {
   return user;
 }
 
+export async function checkDatabaseAccess(uid) {
+  const normalizedUid = String(uid ?? '').trim();
+
+  if (!normalizedUid) {
+    return { authorized: false, reason: 'DOCUMENT_NOT_FOUND', userData: null };
+  }
+
+  if (!db) {
+    return { authorized: false, reason: 'FIRESTORE_ERROR', userData: null };
+  }
+
+  try {
+    const userDoc = doc(db, 'users', normalizedUid);
+    const snapshot = await getDoc(userDoc);
+
+    if (!snapshot.exists()) {
+      return { authorized: false, reason: 'DOCUMENT_NOT_FOUND', userData: null };
+    }
+
+    const userData = snapshot.data() ?? {};
+    const status = userData.status;
+
+    if (status !== 'active') {
+      return { authorized: false, reason: 'USER_INACTIVE', userData };
+    }
+
+    if (userData.databaseAccess !== true) {
+      return { authorized: false, reason: 'DATABASE_ACCESS_DENIED', userData };
+    }
+
+    return { authorized: true, reason: null, userData };
+  } catch (error) {
+    return {
+      authorized: false,
+      reason: 'FIRESTORE_ERROR',
+      userData: null,
+      error
+    };
+  }
+}
+
 export async function loginPlayer(email, password) {
   const activeAuth = ensureAuth();
   const credential = await signInWithEmailAndPassword(activeAuth, email, password);
+  const uid = credential?.user?.uid;
+  const access = await checkDatabaseAccess(uid);
+
+  if (!access.authorized) {
+    const signOutResult = signOut(activeAuth);
+    if (signOutResult && typeof signOutResult.catch === 'function') {
+      await signOutResult.catch(() => {});
+    }
+
+    const error = new Error(
+      access.reason === 'USER_INACTIVE'
+        ? 'Esta conta não está habilitada para acessar o sistema.'
+        : 'Esta conta não possui autorização para acessar o Banco de Dados.'
+    );
+    error.code = access.reason || 'DATABASE_ACCESS_DENIED';
+    error.reason = access.reason;
+    throw error;
+  }
 
   return credential.user;
+}
+
+export function startDatabaseAccessMonitor(onStateChange) {
+  if (!auth) {
+    onStateChange?.({
+      state: 'UNAUTHORIZED',
+      user: null,
+      authorized: false,
+      reason: 'FIREBASE_NOT_CONFIGURED'
+    });
+    return () => {};
+  }
+
+  return onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      onStateChange?.({
+        state: 'UNAUTHORIZED',
+        user: null,
+        authorized: false,
+        reason: 'NOT_AUTHENTICATED'
+      });
+      return;
+    }
+
+    onStateChange?.({
+      state: 'CHECKING_ACCESS',
+      user,
+      authorized: false,
+      reason: null
+    });
+
+    const access = await checkDatabaseAccess(user.uid);
+
+    if (!access.authorized) {
+      const signOutResult = signOut(auth);
+      if (signOutResult && typeof signOutResult.catch === 'function') {
+        await signOutResult.catch(() => {});
+      }
+      onStateChange?.({
+        state: 'UNAUTHORIZED',
+        user: null,
+        authorized: false,
+        reason: access.reason
+      });
+      return;
+    }
+
+    onStateChange?.({
+      state: 'AUTHORIZED',
+      user,
+      authorized: true,
+      reason: null
+    });
+  });
 }
 
 async function findEmailByUsername(username) {

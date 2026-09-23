@@ -65,6 +65,37 @@ Informe:
 - Testes executados e resultados.
 - Limitações ou próximos passos.
 
+## Arquivos temporários, logs e validações
+
+- Não criar arquivos temporários na raiz do projeto para armazenar saída de comandos.
+- Não redirecionar resultados de lint, testes, build, format ou outros comandos para arquivos .txt apenas para posterior leitura.
+- Executar e analisar diretamente no terminal comandos como:
+  npm run lint
+  npm run format:check
+  npm test
+  npm run build
+- Não utilizar desnecessariamente:
+  > arquivo.txt
+  >> arquivo.txt
+  2> arquivo.txt
+  2>&1
+  Tee-Object
+  ou mecanismos equivalentes para persistir a saída de comandos.
+- É proibida a criação automática de arquivos com padrões como:
+  .verify-*.txt
+  .lint-*.txt
+  .format-*.txt
+  .test-*.txt
+  .build-*.txt
+  lint-output.txt
+  format-output.txt
+  test-output.txt
+  build-output.txt
+- Se a ferramenta utilizada conseguir ler a saída diretamente do terminal, essa deve ser SEMPRE a opção preferencial.
+- Se um arquivo temporário for absolutamente necessário por limitação técnica de alguma ferramenta, ele NÃO deve ser criado na raiz do projeto.
+- Nesse caso excepcional, utilizar diretório temporário apropriado e remover o arquivo imediatamente após a operação.
+- Nunca deixar resíduos de diagnóstico ou validação no projeto ao concluir uma tarefa.
+
 ## Limites
 
 Não faça alterações destrutivas sem autorização explícita. Faça a menor alteração necessária e preserve a arquitetura existente.

@@ -1,7 +1,4 @@
 import { getAuth } from 'firebase/auth';
-
-import { app } from './firebase.js';
+import { app } from '../services/firebase.js';
 
 export const auth = app ? getAuth(app) : null;
-
-export default auth;

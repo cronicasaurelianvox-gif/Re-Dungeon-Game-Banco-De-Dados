@@ -1,6 +1,13 @@
 rules_version = '2';
 
 service cloud.firestore {
+  function hasDatabaseAccess() {
+    return request.auth != null &&
+      exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == "active" &&
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.databaseAccess == true;
+  }
+
   match /databases/{database}/documents {
     match /accessCodes/{codeId} {
       allow get: if true;
@@ -14,6 +21,7 @@ service cloud.firestore {
         request.auth.uid == userId &&
         request.resource.data.role == "player" &&
         request.resource.data.status == "active" &&
+        request.resource.data.databaseAccess == false &&
         request.resource.data.displayName is string &&
         request.resource.data.username is string &&
         request.resource.data.email == request.auth.token.email &&
@@ -29,6 +37,7 @@ service cloud.firestore {
         request.auth.uid == userId &&
         request.resource.data.role == resource.data.role &&
         request.resource.data.status == resource.data.status &&
+        request.resource.data.databaseAccess == resource.data.databaseAccess &&
         request.resource.data.email == resource.data.email;
 
       allow delete: if false;

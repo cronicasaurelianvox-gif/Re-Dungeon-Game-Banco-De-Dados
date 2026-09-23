@@ -1,4 +1,4 @@
-import { handleRegister, loginWithIdentifier, requestPasswordReset } from '../services/auth.js';
+import { loginWithIdentifier, requestPasswordReset } from '../services/auth.js';
 import { validateEmail, validateLoginForm, validateSignupForm } from './validation.js';
 
 export function togglePasswordVisibility(input, shouldShow) {
@@ -18,7 +18,7 @@ export function createAuthScreen() {
   }
 
   app.innerHTML = `
-    <div class="auth-scene" aria-label="Tela inicial de autenticação do jogo">
+    <div class="auth-scene" aria-label="Tela inicial de autenticação do banco de dados">
       <div class="ambient ambient-left"></div>
       <div class="ambient ambient-right"></div>
 
@@ -26,18 +26,18 @@ export function createAuthScreen() {
         <div class="panel-emblem" aria-hidden="true">R</div>
 
         <header class="auth-header">
-          <p class="eyebrow">RE:GERON</p>
+          <p class="eyebrow">RE : D U N G E O N</p>
           <h1>
-            <span class="title-main">RE:GERON</span>
-            <span class="title-sub">ASCENSÃO CARMESIM</span>
-            <span class="title-version">V.01 ALPHA</span>
+            <span class="title-main">RE:DUNGEON</span>
+            <span class="title-sub">BANCO DE DADOS</span>
+            <span class="title-version">SISTEMA ADMINISTRATIVO</span>
           </h1>
         </header>
 
-        <section class="auth-form-panel is-active" data-view="login" aria-label="Formulário de login">
+        <section class="auth-form-panel is-active" data-view="login" aria-label="Formulário de acesso ao sistema">
           <div class="form-header">
-            <h2>Entrar no reino</h2>
-            <p>Retome sua jornada em Re:Geron.</p>
+            <h2>Acessar o sistema</h2>
+            <p>Gerencie os dados e conteúdos do universo Re:Dungeon.</p>
           </div>
 
           <form id="login-form" novalidate>
@@ -47,72 +47,27 @@ export function createAuthScreen() {
                 id="login-identifier"
                 name="identifier"
                 type="email"
-                placeholder="seuemail@reino.com"
+                placeholder="administrador@redungeon.com"
                 autocomplete="email"
                 aria-describedby="login-identifier-help"
               />
-              <small id="login-identifier-help" class="field-hint">Informe o e-mail usado no cadastro.</small>
+              <small id="login-identifier-help" class="field-hint">Utilize seu e-mail administrativo.</small>
             </div>
 
             <div class="field-group">
               <label for="login-password">Senha</label>
-              <input
-                id="login-password"
-                name="password"
-                type="password"
-                placeholder="Sua senha"
-                autocomplete="current-password"
-              />
-            </div>
-
-            <button type="submit" class="primary-button">
-              Entrar no reino
-            </button>
-          </form>
-
-            <div class="meta-links">
-            <p>Não possui uma conta?</p>
-            <button type="button" class="text-button switch-to-signup">Criar Conta</button>
-            <button type="button" class="text-button info-button">Lembrar Senha</button>
-          </div>
-        </section>
-
-        <section class="auth-form-panel" data-view="signup" aria-label="Formulário de cadastro" hidden>
-          <div class="form-header">
-            <h2>Criar novo jogador</h2>
-            <p>Escolha sua identidade para iniciar a ascensão.</p>
-          </div>
-
-          <form id="signup-form" novalidate>
-            <div class="field-group">
-              <label for="signup-name">Nome do jogador</label>
-              <input id="signup-name" name="displayName" type="text" placeholder="Seu nome completo" autocomplete="name" />
-            </div>
-
-            <div class="field-group">
-              <label for="signup-username">Usuário</label>
-              <input id="signup-username" name="username" type="text" placeholder="nome_de_guerreiro" autocomplete="username" />
-            </div>
-
-            <div class="field-group">
-              <label for="signup-email">E-mail</label>
-              <input id="signup-email" name="email" type="email" placeholder="seuemail@reino.com" autocomplete="email" />
-            </div>
-
-            <div class="field-group">
-              <label for="signup-password">Senha</label>
               <div class="password-field">
                 <input
-                  id="signup-password"
+                  id="login-password"
                   name="password"
                   type="password"
-                  placeholder="Crie uma senha forte"
-                  autocomplete="new-password"
+                  placeholder="Sua senha"
+                  autocomplete="current-password"
                 />
                 <button
                   type="button"
                   class="password-toggle"
-                  data-target="signup-password"
+                  data-target="login-password"
                   aria-label="Mostrar senha"
                   aria-pressed="false"
                   title="Mostrar senha"
@@ -122,40 +77,11 @@ export function createAuthScreen() {
               </div>
             </div>
 
-            <div class="field-group">
-              <label for="signup-confirm-password">Confirmar senha</label>
-              <div class="password-field">
-                <input
-                  id="signup-confirm-password"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Repita a senha"
-                  autocomplete="new-password"
-                />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  data-target="signup-confirm-password"
-                  aria-label="Mostrar confirmação de senha"
-                  aria-pressed="false"
-                  title="Mostrar confirmação de senha"
-                >
-                  <span aria-hidden="true">👁</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label for="signup-code">Código de acesso</label>
-              <input id="signup-code" name="accessCode" type="text" placeholder="Ex.: ALFA-2026" autocomplete="off" />
-            </div>
-
-            <button type="submit" class="primary-button">Criar personagem</button>
+            <button type="submit" class="primary-button">Entrar no sistema</button>
           </form>
 
           <div class="meta-links">
-            <p>Já possui uma conta?</p>
-            <button type="button" class="text-button switch-to-login">Voltar para entrar</button>
+            <button type="button" class="text-button info-button">Esqueceu sua senha?</button>
           </div>
         </section>
 
@@ -163,30 +89,17 @@ export function createAuthScreen() {
       </main>
 
       <footer class="auth-footer">
-        <p>Re:Geron — Ascensão Carmesim</p>
-        <p>V.01 Alpha</p>
-        <p>Um RPG de navegador em desenvolvimento.</p>
-        <small>Este projeto está em fase experimental.</small>
+        <p>RE:DUNGEON — BANCO DE DADOS</p>
+        <p>SISTEMA ADMINISTRATIVO</p>
+        <small>Gerenciamento de conteúdo e dados do Re:Dungeon.</small>
       </footer>
     </div>
   `;
 
   const messageBox = app.querySelector('#system-message');
   const loginSection = app.querySelector('[data-view="login"]');
-  const signupSection = app.querySelector('[data-view="signup"]');
   const loginForm = app.querySelector('#login-form');
-  const signupForm = app.querySelector('#signup-form');
   let activeView = 'login';
-
-  const accessCodeErrorMessages = {
-    ACCESS_CODE_EMPTY: 'Informe o código de acesso.',
-    DOCUMENT_NOT_FOUND: 'Código de acesso inválido.',
-    ACTIVE_FIELD_MISSING: 'Código de acesso inválido.',
-    ACTIVE_NOT_BOOLEAN: 'Código de acesso inválido.',
-    ACCESS_CODE_DISABLED: 'Este código de acesso está desativado.',
-    FIREBASE_PERMISSION_DENIED: 'Erro de permissão ao consultar o código de acesso.',
-    FIREBASE_CONNECTION_ERROR: 'Erro de conexão ao consultar o código de acesso.'
-  };
 
   const setMessage = (type, text) => {
     if (!messageBox) return;
@@ -207,17 +120,8 @@ export function createAuthScreen() {
 
     if (view === 'login') {
       loginSection.hidden = false;
-      signupSection.hidden = true;
       loginSection.classList.add('is-active');
-      signupSection.classList.remove('is-active');
       const field = app.querySelector('#login-identifier');
-      field?.focus();
-    } else {
-      signupSection.hidden = false;
-      loginSection.hidden = true;
-      signupSection.classList.add('is-active');
-      loginSection.classList.remove('is-active');
-      const field = app.querySelector('#signup-name');
       field?.focus();
     }
   };
@@ -274,22 +178,11 @@ export function createAuthScreen() {
     field.parentElement?.appendChild(error);
   };
 
-  app.querySelector('.switch-to-signup').addEventListener('click', () => {
-    setMessage('info', 'A autenticação Firebase será conectada em uma próxima etapa.');
-    showView('signup');
-  });
-
-  app.querySelector('.switch-to-login').addEventListener('click', () => {
-    setMessage('info', 'Retornando ao acesso do reino.');
-    showView('login');
-  });
-
-  app.querySelector('.info-button').addEventListener('click', () => {
+  app.querySelector('.info-button')?.addEventListener('click', () => {
     openPasswordResetModal();
   });
 
   function openPasswordResetModal() {
-    // If modal already exists, focus the input
     let modal = app.querySelector('#password-reset-modal');
     if (!modal) {
       modal = document.createElement('div');
@@ -302,8 +195,8 @@ export function createAuthScreen() {
             <button class="modal-close" aria-label="Fechar">✖</button>
           </header>
           <div class="modal-body">
-            <p class="eyebrow">Os portões de Re:Geron ainda podem ser abertos.</p>
-            <p>Informe o e-mail da sua conta. Enviaremos um link seguro para você criar uma nova senha.</p>
+            <p class="eyebrow">ACESSO ADMINISTRATIVO</p>
+            <p>Informe o e-mail da sua conta e enviaremos um link seguro para redefinir sua senha.</p>
 
             <form id="password-reset-form">
               <div class="field-group">
@@ -323,7 +216,6 @@ export function createAuthScreen() {
 
       document.body.appendChild(modal);
 
-      // basic keyboard handling and focus
       const closeBtn = modal.querySelector('.modal-close');
       const backBtn = modal.querySelector('.pr-back');
       const form = modal.querySelector('#password-reset-form');
@@ -361,7 +253,6 @@ export function createAuthScreen() {
           prMessage.className = 'system-message error';
           const msg =
             err?.message || 'Não foi possível enviar o link de recuperação. Tente novamente.';
-          // Use a safe message that doesn't confirm existence of account
           if (err?.code === 'auth/user-not-found') {
             prMessage.textContent =
               'Se existir uma conta com esse e-mail, enviaremos um link de recuperação.';
@@ -373,12 +264,9 @@ export function createAuthScreen() {
         }
       });
 
-      // focus
-      const input = modal.querySelector('#pr-email');
-      input?.focus();
+      modal.querySelector('#pr-email')?.focus();
     } else {
-      const input = modal.querySelector('#pr-email');
-      input?.focus();
+      modal.querySelector('#pr-email')?.focus();
     }
   }
 
@@ -411,108 +299,39 @@ export function createAuthScreen() {
     }
 
     try {
-      setLoadingState(loginButton, true, 'Entrar no reino');
-      setMessage('info', 'Consultando os registros do reino...');
+      setLoadingState(loginButton, true, 'Entrar no sistema');
+      setMessage('info', 'Autenticando acesso...');
 
       const normalizedIdentifier = identifier.trim();
       const user = await loginWithIdentifier(normalizedIdentifier, password);
-      const displayName = user?.displayName || normalizedIdentifier.split('@')[0] || 'Kael';
-      setMessage('success', `Bem-vindo(a), ${user.email || displayName}.`);
-      // Fluxo atual do projeto: a autenticação permanece na tela de login.
-      // A antiga hub do jogo foi removida desta limpeza controlada.
+      const displayName =
+        user?.displayName || normalizedIdentifier.split('@')[0] || 'Administrador';
+      setMessage('info', 'Verificando permissão administrativa...');
+      setMessage('success', `Acesso confirmado. ${user.email || displayName}.`);
       void displayName;
     } catch (error) {
       if (error?.message === 'Firebase não configurado.') {
-        setMessage('info', 'Firebase ainda não está conectado. A simulação local está ativa.');
+        setMessage('info', 'Firebase ainda não está conectado.');
         return;
       }
 
       if (error?.code === 'USER_NOT_FOUND') {
         setMessage('error', 'Usuário não encontrado. Verifique seu nome ou e-mail.');
+      } else if (error?.code === 'USER_INACTIVE') {
+        setMessage('error', 'Esta conta não está habilitada para acessar o sistema.');
+      } else if (error?.code === 'DATABASE_ACCESS_DENIED' || error?.code === 'DOCUMENT_NOT_FOUND') {
+        setMessage('error', 'Esta conta não possui autorização para acessar o Banco de Dados.');
+      } else if (error?.code === 'FIRESTORE_ERROR') {
+        setMessage('error', 'Não foi possível verificar sua permissão de acesso. Tente novamente.');
       } else {
-        setMessage('error', 'Não foi possível entrar no reino. Verifique seus dados.');
+        setMessage('error', 'Não foi possível autenticar o acesso. Verifique seus dados.');
       }
     } finally {
-      setLoadingState(loginButton, false, 'Entrar no reino');
+      setLoadingState(loginButton, false, 'Entrar no sistema');
     }
   });
 
-  signupForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const signupButton = signupForm.querySelector('.primary-button');
-    const formData = {
-      displayName: signupForm.displayName.value,
-      username: signupForm.username.value,
-      email: signupForm.email.value,
-      password: signupForm.password.value,
-      confirmPassword: signupForm.confirmPassword.value,
-      accessCode: signupForm.accessCode.value
-    };
-
-    const result = validateSignupForm(formData);
-
-    app.querySelectorAll('#signup-form input').forEach((input) => {
-      input.classList.remove('is-invalid');
-      const error = input.parentElement?.querySelector('.field-error');
-      error?.remove();
-    });
-
-    if (!result.valid) {
-      const fieldMap = {
-        displayName: signupForm.displayName,
-        username: signupForm.username,
-        email: signupForm.email,
-        password: signupForm.password,
-        confirmPassword: signupForm.confirmPassword,
-        accessCode: signupForm.accessCode
-      };
-
-      Object.entries(result.errors).forEach(([key, message]) => {
-        showFieldError(fieldMap[key], message);
-      });
-
-      setMessage('error', 'Os dados informados não são válidos.');
-      return;
-    }
-
-    try {
-      setLoadingState(signupButton, true, 'Criar personagem');
-      setMessage('info', 'Preparando seu registro no reino...');
-
-      const user = await handleRegister({
-        displayName: formData.displayName,
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-        accessCode: formData.accessCode
-      });
-
-      setMessage(
-        'success',
-        `Seu registro foi preparado. ${user.email} está pronto para a jornada.`
-      );
-      signupForm.reset();
-    } catch (error) {
-      if (error?.message === 'Firebase não configurado.') {
-        setMessage(
-          'info',
-          'Firebase ainda não está conectado. O cadastro foi preparado localmente para a próxima etapa.'
-        );
-        return;
-      }
-
-      const diagnosticMessage =
-        accessCodeErrorMessages[error?.code] ??
-        'Não foi possível criar o personagem no reino no momento.';
-      setMessage('error', diagnosticMessage);
-    } finally {
-      setLoadingState(signupButton, false, 'Criar personagem');
-    }
-  });
-
-  setMessage('info', 'Consultando os registros do reino...');
+  setMessage('info', 'Verificando credenciais...');
   showView(activeView);
 
   return {
