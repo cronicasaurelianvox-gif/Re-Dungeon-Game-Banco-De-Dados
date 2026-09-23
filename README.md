@@ -1,6 +1,10 @@
-# Re:Geron — Ascensão Carmesim
+# Re:Dungeon — Banco de Dados
 
-Projeto inicial para aprendizado de HTML, CSS, JavaScript e Firebase.
+Sistema administrativo responsável pelo gerenciamento dos dados e conteúdos do universo **Re:Dungeon**.
+
+Este projeto funciona como uma aplicação separada do jogo principal, concentrando ferramentas administrativas e a estrutura de dados utilizada pelo Re:Dungeon.
+
+> Projeto atualmente em desenvolvimento.
 
 ## Tecnologias
 
@@ -11,7 +15,8 @@ Projeto inicial para aprendizado de HTML, CSS, JavaScript e Firebase.
 - ESLint
 - Prettier
 - Vitest
-- Firebase, preparado mas ainda não configurado
+- Firebase Authentication
+- Cloud Firestore
 
 ## Requisitos
 
@@ -20,19 +25,31 @@ Projeto inicial para aprendizado de HTML, CSS, JavaScript e Firebase.
 
 ## Instalação
 
+Instale as dependências:
+
 ```bash
 npm install
 ```
 
 ## Desenvolvimento
 
+Inicie o ambiente de desenvolvimento:
+
 ```bash
 npm run dev
 ```
 
-Depois, abra o endereço mostrado no terminal.
+Depois, abra no navegador o endereço exibido pelo Vite no terminal.
+
+Normalmente:
+
+```text
+http://localhost:5173/
+```
 
 ## Verificações
+
+Antes de enviar alterações para o repositório, execute:
 
 ```bash
 npm run lint
@@ -43,39 +60,135 @@ npm run build
 
 ## Firebase
 
-1. Crie um projeto no [Firebase Console](https://console.firebase.google.com/).
+O projeto utiliza Firebase como infraestrutura principal do sistema.
+
+### Firebase Authentication
+
+Responsável pela autenticação dos usuários autorizados a acessar o Banco de Dados do Re:Dungeon.
+
+### Cloud Firestore
+
+Responsável pelo armazenamento e gerenciamento dos dados utilizados pelo sistema.
+
+A estrutura será desenvolvida gradualmente conforme os módulos do Re:Dungeon forem implementados.
+
+Entre os domínios planejados estão:
+
+- Aventura
+- Jogadores
+- NPCs
+- Criaturas
+- Raças
+- Classes
+- Habilidades
+- Itens
+- Condições
+- Missões
+- Cultivo
+- Vias Astrais
+- CardFlux
+- Notas
+- Usuários
+
+## Configuração do Firebase
+
+1. Crie ou selecione o projeto correspondente no Firebase Console.
 2. Registre um aplicativo Web.
 3. Copie `.env.example` para `.env.local`.
-4. Preencha os valores do Firebase em `.env.local`.
+4. Preencha as variáveis necessárias do Firebase em `.env.local`.
 5. Nunca publique `.env.local` no GitHub.
-6. Configure o Firebase Emulator antes de testar com dados reais.
+6. Nunca coloque credenciais ou segredos diretamente no código-fonte.
 
-A integração fica em `src/services/firebase.js`. Por enquanto, o jogo funciona sem Firebase.
+Exemplo:
+
+```text
+.env.example
+.env.local
+```
+
+O arquivo `.env.example` pode ser versionado.
+
+O arquivo `.env.local` deve permanecer privado.
 
 ## Estrutura
 
+A estrutura será expandida conforme o desenvolvimento do sistema.
+
 ```text
 src/
-├── game/       # Regras do jogo
-├── services/   # Firebase e serviços externos
-├── styles/     # CSS
-└── ui/         # Interface
-
-tests/          # Testes automatizados
-public/assets/  # Imagens, sons e outros recursos
+├── database/             # Domínios e acesso aos dados do Re:Dungeon
+│   ├── aventura/
+│   ├── jogadores/
+│   ├── npcs/
+│   ├── criaturas/
+│   ├── racas/
+│   ├── classes/
+│   ├── habilidades/
+│   ├── itens/
+│   ├── condicoes/
+│   ├── missoes/
+│   ├── cultivo/
+│   ├── vias-astrais/
+│   ├── cardflux/
+│   ├── notas/
+│   └── usuarios/
+│
+├── lib/
+│   └── firebase/         # Configuração do Firebase, Auth e Firestore
+│
+├── pages/                # Telas do sistema administrativo
+├── components/           # Componentes compartilhados
+├── types/                # Tipos compartilhados
+└── test/                 # Infraestrutura de testes
 ```
 
-## Subir para o GitHub
+A estrutura real pode variar conforme novos módulos forem implementados.
 
-Depois de criar um repositório vazio no GitHub:
+## Banco de Dados
+
+O Cloud Firestore será organizado por módulos do universo Re:Dungeon.
+
+Cada módulo será desenvolvido separadamente para evitar acoplamento desnecessário e facilitar manutenção, testes e expansão do sistema.
+
+A implementação das collections, documentos, referências e regras de segurança será feita gradualmente.
+
+## Segurança
+
+O Banco de Dados é uma ferramenta administrativa.
+
+Não devem ser armazenados no repositório:
+
+- senhas;
+- tokens;
+- arquivos `.env.local`;
+- chaves privadas;
+- credenciais administrativas;
+- arquivos de conta de serviço;
+- outros segredos.
+
+O acesso aos dados não deve depender apenas da interface. As permissões também deverão ser protegidas pelas regras do Firebase.
+
+## GitHub
+
+Para enviar alterações:
 
 ```bash
-git init
 git add .
-git commit -m "chore: inicia projeto do jogo"
-git branch -M main
-git remote add origin URL_DO_SEU_REPOSITORIO
-git push -u origin main
+git commit -m "descrição da alteração"
+git push
 ```
 
-Não inclua senhas, tokens, arquivos `.env.local` ou credenciais administrativas.
+Repositório:
+
+`Re-Dungeon-Game-Banco-De-Dados`
+
+## Status
+
+🚧 **Em desenvolvimento**
+
+Atualmente o projeto está sendo preparado para receber gradualmente a estrutura administrativa e os bancos de dados do Re:Dungeon.
+
+---
+
+**Re:Dungeon — Banco de Dados**  
+Sistema administrativo do universo Re:Dungeon.
