@@ -1,6 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore';
 
-import { db } from './firebase.js';
+import { db } from '../lib/firestore.js';
 
 const createDiagnosticError = (code, message) => {
   const error = new Error(message);

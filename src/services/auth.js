@@ -1,19 +1,17 @@
 import {
   createUserWithEmailAndPassword,
-  getAuth,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
-import { sendPasswordResetEmail } from 'firebase/auth';
 
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
-import { app, db } from './firebase.js';
+import { auth } from '../lib/auth.js';
+import { db } from '../lib/firestore.js';
 import { validateAccessCode } from './access-code.js';
 import { createPlayerProfile } from './player-profile.js';
-
-const auth = app ? getAuth(app) : null;
 
 function ensureAuth() {
   if (!auth) {

@@ -1,6 +1,6 @@
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-import { db } from './firebase.js';
+import { db } from '../lib/firestore.js';
 
 export async function createPlayerProfile({ uid, displayName, username, email, accessCodeId }) {
   const profileReference = doc(db, 'users', uid);

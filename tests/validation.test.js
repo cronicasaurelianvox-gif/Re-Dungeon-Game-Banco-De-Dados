@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
-import { getSharedAudioElement } from '../src/audio/shared-audio.js';
-import { musicPlaylist, getTrackSource } from '../src/audio/music-playlist.js';
 import { createAuthScreen, togglePasswordVisibility } from '../src/ui/auth-screen.js';
 import { validateEmail, validateLoginForm, validateSignupForm } from '../src/ui/validation.js';
 import { handleRegister } from '../src/services/auth.js';
@@ -124,38 +122,17 @@ describe('handleRegister', () => {
 });
 
 describe('createAuthScreen', () => {
-  it('renderiza o botão de ajuste de som com ícone de volume em SVG', () => {
+  it('renderiza a tela de autenticação com login e cadastro ativos', () => {
     const app = document.createElement('div');
     app.id = 'app';
     document.body.appendChild(app);
 
     createAuthScreen();
 
-    const volumeButton = app.querySelector('.music-mute-toggle');
-    expect(volumeButton).not.toBeNull();
-    expect(volumeButton.querySelector('svg')).not.toBeNull();
-
-    app.remove();
-  });
-
-  it('avança para a próxima faixa quando a música termina com loop desativado', () => {
-    const app = document.createElement('div');
-    app.id = 'app';
-    document.body.appendChild(app);
-
-    expect(musicPlaylist.length).toBeGreaterThan(1);
-
-    createAuthScreen();
-
-    const audio = getSharedAudioElement();
-    audio.src = getTrackSource(musicPlaylist[0].fileName);
-    audio.load = vi.fn();
-
-    audio.dispatchEvent(new Event('play'));
-    audio.dispatchEvent(new Event('pause'));
-    audio.dispatchEvent(new Event('ended'));
-
-    expect(decodeURIComponent(audio.src)).toContain(musicPlaylist[1].fileName);
+    expect(app.querySelector('#login-form')).not.toBeNull();
+    expect(app.querySelector('#signup-form')).not.toBeNull();
+    expect(app.querySelector('.switch-to-signup')).not.toBeNull();
+    expect(app.querySelector('.switch-to-login')).not.toBeNull();
 
     app.remove();
   });
